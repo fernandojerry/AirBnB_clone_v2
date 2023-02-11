@@ -3,9 +3,6 @@
     serializes instances to a JSON file
     and deserializes JSON file to instances """
 import json
-import uuid
-import os
-from datetime import datetime
 from models.base_model import BaseModel
 from models.user import User
 from models.state import State
@@ -26,20 +23,24 @@ class FileStorage:
 
     def new(self, obj):
         """ sets in dictionary the obj with key <obj class name>.id """
-        FileStorage.__objects[obj.__class__.__name__ + "." + str(obj.id)] = obj
+        obj_cls_name = obj.__class__.__name__
+        FileStorage.__objects["{}.{}".format(obj_cls_name, obj.id)] = obj
 
     def save(self):
-        """ serializes objectss to the JSON file (path: __file_path) """
-        with open(FileStorage.__file_path, 'w', encoding='utf-8') as fname:
-            new_dict = {key: obj.to_dict() for key, obj in
-                        FileStorage.__objects.items()}
-            json.dump(new_dict, fname)
+        """Serialize __objects to the JSON file __file_path."""
+        odict = FileStorage.__objects
+        objdict = {obj: odict[obj].to_dict() for obj in odict.keys()}
+        with open(FileStorage.__file_path, "w") as f:
+            json.dump(objdict, f)
 
     def reload(self):
-        """ Reload the file """
-        if (os.path.isfile(FileStorage.__file_path)):
-            with open(FileStorage.__file_path, 'r', encoding="utf-8") as fname:
-                l_json = json.load(fname)
-                for key, val in l_json.items():
-                    FileStorage.__objects[key] = eval(
-                        val['__class__'])(**val)
+        """Deserialize the JSON file __file_path to __objects, if it exists."""
+        try:
+            with open(FileStorage.__file_path) as fname:
+                objdict = json.load(fname)
+                for key in objdict.values():
+                    cls_name = key["__class__"]
+                    del key["__class__"]
+                    self.new(eval(cls_name)(**key))
+        except FileNotFoundError:
+            return
