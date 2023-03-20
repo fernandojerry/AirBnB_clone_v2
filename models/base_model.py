@@ -1,17 +1,23 @@
 #!/usr/bin/python3
-""" Class BaseModel """
-from datetime import datetime
+"""This script is the base model"""
+
 import uuid
-from models import storage
+from datetime import datetime
+from model import storage
+
 
 class BaseModel:
-    """ BaseModel construction """
 
-    def __init__(self, *args **kwargs):
-        """ 
-        initialize a new BaseModel 
+    """Class from which all other classes will inherit"""
+
+    def __init__(self, *args, **kwargs):
+        """Initializes instance attributes
+        Args:
+            - *args: list of arguments
+            - **kwargs: dict of key-values arguments
         """
-if kwargs is not None and kwargs != {}:
+
+        if kwargs is not None and kwargs != {}:
             for key in kwargs:
                 if key == "created_at":
                     self.__dict__["created_at"] = datetime.strptime(
@@ -27,7 +33,7 @@ if kwargs is not None and kwargs != {}:
             self.updated_at = datetime.now()
             storage.new(self)
 
-      def __str__(self):
+    def __str__(self):
         """Returns official string representation"""
 
         return "[{}] ({}) {}".\
